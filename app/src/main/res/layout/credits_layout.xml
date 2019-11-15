@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/credits_dialog_header"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/colorPrimary"
+            android:elevation="@dimen/dialog_header_elevation"
+            android:padding="@dimen/dialog_header_padding"
+            android:paddingStart="@dimen/dialog_body_padding"
+            android:text="@string/credits_header"
+            android:textSize="@dimen/dialog_header_text_size"
+            android:textStyle="bold"
+            android:textColor="@android:color/white"/>
+
+        <View
+            android:id="@+id/credits_dialog_divider"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/dialog_header_elevation"
+            android:background="@drawable/divider_shadow" />
+
+        <TextView
+            android:id="@+id/credits_dialog_body"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="@dimen/dialog_body_padding"
+            android:text="@string/credits_body"
+            android:textSize="@dimen/dialog_body_text_size" />
+
+    </LinearLayout>
+</ScrollView>

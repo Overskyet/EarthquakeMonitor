@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <dimen name="dialog_header_elevation">2dp</dimen>
+    <dimen name="dialog_header_padding">5dp</dimen>
+    <dimen name="dialog_body_padding">10dp</dimen>
+    <dimen name="dialog_header_text_size">20sp</dimen>
+    <dimen name="dialog_body_text_size">18sp</dimen>
+
+    <dimen name="main_app_bar_layout_height">200dp</dimen>
+    <dimen name="main_collapsing_toolbar_margin">16dp</dimen>
+
+    <dimen name="recycler_item_height">80dp</dimen>
+    <dimen name="recycler_image_size">50dp</dimen>
+    <dimen name="recycler_linear_layout_container_padding">5dp</dimen>
+    <dimen name="recycler_linear_layout_container_padding_start_end">16dp</dimen>
+    <dimen name="recycler_distance_date_time_text_size">12sp</dimen>
+    <dimen name="recycler_location_text_min_size">14sp</dimen>
+    <dimen name="recycler_location_text_max_size">15sp</dimen>
+    <dimen name="recycler_location_step_granularity">1sp</dimen>
+
+</resources>

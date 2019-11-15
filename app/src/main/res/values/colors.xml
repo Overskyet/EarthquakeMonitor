@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="ic_launcher_background">#E9B300</color>
+
+    <color name="colorPrimary">#607D8B</color>
+    <color name="colorPrimaryDark">#455A64</color>
+    <color name="colorAccent">#FF5252</color>
+
+    <color name="mag_1_0">#4A7BA7</color>
+    <color name="mag_2_0">#04B4B3</color>
+    <color name="mag_3_0">#10CAC9</color>
+    <color name="mag_4_0">#F5A623</color>
+    <color name="mag_5_0">#FF7D50</color>
+    <color name="mag_6_0">#FC6644</color>
+    <color name="mag_7_0">#E75F40</color>
+    <color name="mag_8_0">#E13A20</color>
+    <color name="mag_9_0">#D93218</color>
+    <color name="mag_10_0">#C03823</color>
+</resources>

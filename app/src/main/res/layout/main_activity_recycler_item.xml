@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/linear_layout_container"
+    android:layout_width="match_parent"
+    android:layout_height="@dimen/recycler_item_height"
+    android:background="?android:attr/selectableItemBackground"
+    android:orientation="horizontal"
+    android:padding="@dimen/recycler_linear_layout_container_padding"
+    android:paddingStart="@dimen/recycler_linear_layout_container_padding_start_end"
+    android:paddingEnd="@dimen/recycler_linear_layout_container_padding_start_end">
+
+    <TextView
+        android:id="@+id/main_recycler_image"
+        android:layout_width="@dimen/recycler_image_size"
+        android:layout_height="@dimen/recycler_image_size"
+        android:layout_gravity="center_vertical"
+        android:background="@drawable/main_recycle_image_background_shape"
+        android:gravity="center"
+        android:text="9.9"
+        android:textColor="@android:color/white"
+        android:textSize="16sp" />
+
+    <LinearLayout
+        android:id="@+id/main_recycler_parent_linear_layout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="horizontal"
+        android:paddingStart="@dimen/recycler_linear_layout_container_padding_start_end">
+
+        <LinearLayout
+            android:id="@+id/main_recycler_child_linear_layout_start"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="0.3"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/main_recycler_distance_text_view"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="0.5"
+                android:gravity="bottom"
+                android:text="27km sse of"
+                android:textAllCaps="true"
+                android:textSize="@dimen/recycler_distance_date_time_text_size"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/main_recycler_location_text_view"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="0.5"
+                android:gravity="top"
+                android:text="Sary-Tash, Kyrgyzstan"
+                android:textColor="@color/colorPrimaryDark"
+                android:textStyle="bold"
+                app:autoSizeMaxTextSize="@dimen/recycler_location_text_max_size"
+                app:autoSizeMinTextSize="@dimen/recycler_location_text_min_size"
+                app:autoSizeStepGranularity="@dimen/recycler_location_step_granularity"
+                app:autoSizeTextType="uniform" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/main_recycler_child_linear_layout_end"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="0.8"
+            android:orientation="vertical">
+
+
+            <TextView
+                android:id="@+id/main_recycler_date_text_view"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="0.5"
+                android:gravity="end|bottom"
+                android:text="Jun 26, 2016"
+                android:textSize="@dimen/recycler_distance_date_time_text_size" />
+
+            <TextView
+                android:id="@+id/main_recycler_time_text_view"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="0.5"
+                android:gravity="end|top"
+                android:text="4:17 AM"
+                android:textSize="@dimen/recycler_distance_date_time_text_size" />
+        </LinearLayout>
+    </LinearLayout>
+</LinearLayout>

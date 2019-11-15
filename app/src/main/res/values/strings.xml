@@ -1,0 +1,25 @@
+<resources>
+    <string name="app_name">Earthquake Monitor</string>
+
+    <string name="menu_refresh">Refresh</string>
+    <string name="menu_credits">@string/credits_header</string>
+
+    <string name="credits_header">Credits</string>
+    <string name="credits_body">Launcher icon made by <a href='https://www.flaticon.com/authors/freepik'>Freepik</a>
+    </string>
+
+    <string-array name="array">
+        <item>One</item>
+        <item>One</item>
+        <item>One</item>
+        <item>One</item>
+        <item>One</item>
+        <item>One</item>
+        <item>One</item>
+        <item>One</item>
+        <item>One</item>
+        <item>One</item>
+        <item>One</item>
+        <item>One</item>
+    </string-array>
+</resources>
