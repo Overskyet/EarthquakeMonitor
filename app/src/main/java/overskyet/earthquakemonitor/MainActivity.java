@@ -4,6 +4,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -38,11 +39,14 @@ public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = MainActivity.class.getSimpleName();
 
-    private static final String USGS_URL_1 =
-            "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&starttime=";
+    private static String time = new SimpleDateFormat("yyyy-MM-dd").format(System.currentTimeMillis());
+    private static final String USGS_URL =
+            "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&starttime=" + time;
+    private String sortBy = "";
 
     private RecyclerView recyclerView;
     private RecyclerAdapter recyclerAdapter;
+    private SwipeRefreshLayout swipeRefreshLayout;
 
     private List<Earthquake> earthquakeList = new ArrayList<>();
 
@@ -50,7 +54,6 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
         initToolbar();
         initRecyclerView();
         new GettingEarthquakes().execute();
@@ -83,26 +86,62 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        int i = item.getItemId();
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        if (!menu.findItem(R.id.menu_sort_by_magnitude).isChecked())
+        menu.findItem(R.id.menu_sort_by_time).setChecked(true);
+        return true;
+    }
 
-        if (i == R.id.main_toolbar_menu_refresh) {
-            return true;
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.main_toolbar_menu_refresh:
+                earthquakeList.clear();
+                recyclerAdapter.notifyDataSetChanged();
+                new GettingEarthquakes().execute();
+                break;
+            case R.id.main_toolbar_menu_credits:
+                openCreditsDialog();
+                break;
+            case R.id.menu_sort_by_time:
+                sortBy = "&orderby=time";
+                earthquakeList.clear();
+                recyclerAdapter.notifyDataSetChanged();
+                new GettingEarthquakes().execute();
+                item.setChecked(true);
+                break;
+            case R.id.menu_sort_by_magnitude:
+                item.setChecked(true);
+                sortBy = "&orderby=magnitude";
+                earthquakeList.clear();
+                recyclerAdapter.notifyDataSetChanged();
+                new GettingEarthquakes().execute();
+                break;
+            default:
+                return super.onOptionsItemSelected(item);
         }
-        if (i == R.id.main_toolbar_menu_credits) {
-            openCreditsDialog();
-            return true;
-        }
-        return super.onOptionsItemSelected(item);
+        return true;
+    }
+
+    public void initSwipeRefresh() {
+        swipeRefreshLayout = findViewById(R.id.swipe_refresh_layout);
+        swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                earthquakeList.clear();
+                recyclerAdapter.notifyDataSetChanged();
+                new GettingEarthquakes().execute();
+                swipeRefreshLayout.setRefreshing(false);
+            }
+        });
     }
 
     public class GettingEarthquakes extends AsyncTask<URL, Void, List<Earthquake>> {
 
         @Override
         protected List<Earthquake> doInBackground(URL... urls) {
-            String time = new SimpleDateFormat("yyyy-mm-dd", Locale.getDefault()).format(new Date());
-            Toast.makeText(getApplicationContext(), "Current time is: " + time, Toast.LENGTH_LONG).show();
-            URL url = createUrl(USGS_URL_1 + time);
+            String stringUrl = USGS_URL + sortBy;
+            URL url = createUrl(stringUrl);
             String stringJsonObject = makeHttpRequest(url);
 
             return getListOfEarthquakes(stringJsonObject);
@@ -113,6 +152,7 @@ public class MainActivity extends AppCompatActivity {
             earthquakeList.clear();
             earthquakeList.addAll(earthquakes);
             recyclerAdapter.notifyDataSetChanged();
+            initSwipeRefresh();
         }
 
         private URL createUrl(String stringUrl) {
