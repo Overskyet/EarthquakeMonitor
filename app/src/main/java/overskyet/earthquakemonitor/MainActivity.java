@@ -27,6 +27,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.lang.ref.WeakReference;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -47,9 +48,10 @@ public class MainActivity extends AppCompatActivity {
     private static final String ORDER_BY_TIME_PARAMETER = "&orderby=time";
     private static final String ORDER_BY_MAGNITUDE_PARAMETER = "&orderby=magnitude";
     private static final String END_TIME_PARAMETER = "&endtime=";
+    private boolean isMenuMagnitudeChecked = false;
     private boolean isDateSet = false;
-    private String mTotalUsgsUrl;
-    private String mSortBy = "";
+    private static String mTotalUsgsUrl;
+    private static String mSortBy = "";
     private String mCustomDateCurrent;
     private String mCustomDateNext;
 
@@ -65,26 +67,34 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         if (savedInstanceState != null) {
             isDateSet = savedInstanceState.getBoolean("isDateSet");
+            isMenuMagnitudeChecked = savedInstanceState.getBoolean("isMenuMagnitudeChecked");
             mTotalUsgsUrl = savedInstanceState.getString("mTotalUsgsUrl");
             mSortBy = savedInstanceState.getString("mSortBy");
             mCustomDateCurrent = savedInstanceState.getString("mCustomDateCurrent");
             mCustomDateNext = savedInstanceState.getString("mCustomDateNext");
         }
         setContentView(R.layout.activity_main);
+
         initToolbar();
         initRecyclerView();
         setCurrentDate();
-        new GettingEarthquakes().execute();
+        getEarthquakeAsyncTask();
+        initSwipeRefresh();
     }
 
     @Override
     protected void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putBoolean("isDateSet", isDateSet);
+        outState.putBoolean("isMenuMagnitudeChecked", isMenuMagnitudeChecked);
         outState.putString("mTotalUsgsUrl", mTotalUsgsUrl);
         outState.putString("mSortBy", mSortBy);
         outState.putString("mCustomDateCurrent", mCustomDateCurrent);
         outState.putString("mCustomDateNext", mCustomDateNext);
+    }
+
+    private void getEarthquakeAsyncTask() {
+        new EarthquakesAsyncTask(MainActivity.this).execute();
     }
 
     private void initToolbar() {
@@ -153,8 +163,8 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
-        if (!menu.findItem(R.id.menu_sort_by_magnitude).isChecked())
-            menu.findItem(R.id.menu_sort_by_time).setChecked(true);
+        if (!isMenuMagnitudeChecked) menu.findItem(R.id.menu_sort_by_time).setChecked(true);
+        else menu.findItem(R.id.menu_sort_by_magnitude).setChecked(true);
         return true;
     }
 
@@ -171,13 +181,15 @@ public class MainActivity extends AppCompatActivity {
                 openCreditsDialog();
                 break;
             case R.id.menu_sort_by_time:
+                isMenuMagnitudeChecked = false;
                 mSortBy = ORDER_BY_TIME_PARAMETER;
-                refreshRecyclerData();
                 item.setChecked(true);
+                refreshRecyclerData();
                 break;
             case R.id.menu_sort_by_magnitude:
-                item.setChecked(true);
+                isMenuMagnitudeChecked = true;
                 mSortBy = ORDER_BY_MAGNITUDE_PARAMETER;
+                item.setChecked(true);
                 refreshRecyclerData();
                 break;
             default:
@@ -200,10 +212,16 @@ public class MainActivity extends AppCompatActivity {
     private void refreshRecyclerData() {
         earthquakeList.clear();
         mRecyclerAdapter.notifyDataSetChanged();
-        new GettingEarthquakes().execute();
+        getEarthquakeAsyncTask();
     }
 
-    public class GettingEarthquakes extends AsyncTask<URL, Void, List<Earthquake>> {
+    public static class EarthquakesAsyncTask extends AsyncTask<URL, Void, List<Earthquake>> {
+
+        private WeakReference<MainActivity> activityWeakReference;
+
+        EarthquakesAsyncTask(MainActivity context) {
+            activityWeakReference = new WeakReference<>(context);
+        }
 
         @Override
         protected List<Earthquake> doInBackground(URL... urls) {
@@ -216,10 +234,12 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         protected void onPostExecute(List<Earthquake> earthquakes) {
-            earthquakeList.clear();
-            earthquakeList.addAll(earthquakes);
-            mRecyclerAdapter.notifyDataSetChanged();
-            initSwipeRefresh();
+            MainActivity activity = activityWeakReference.get();
+            if (activity == null || activity.isFinishing()) return;
+
+            activity.earthquakeList.clear();
+            activity.earthquakeList.addAll(earthquakes);
+            activity.mRecyclerAdapter.notifyDataSetChanged();
         }
 
         private URL createUrl(String stringUrl) {
@@ -234,11 +254,10 @@ public class MainActivity extends AppCompatActivity {
         }
 
         private String makeHttpRequest(URL url) {
-            // Do http request
             String jsonResponse = "";
             HttpURLConnection urlConnection = null;
             InputStream inputStream = null;
-            BufferedReader bufferedReader = null;
+            BufferedReader bufferedReader;
             try {
                 urlConnection = (HttpURLConnection) url.openConnection();
                 urlConnection.setRequestMethod("GET");
