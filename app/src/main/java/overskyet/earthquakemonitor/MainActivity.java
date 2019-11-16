@@ -1,17 +1,21 @@
 package overskyet.earthquakemonitor;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
+import android.app.DatePickerDialog;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.Toast;
+import android.widget.DatePicker;
 
 import com.google.android.material.appbar.CollapsingToolbarLayout;
 
@@ -28,9 +32,9 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 import java.util.stream.Collectors;
 
 import overskyet.earthquakemonitor.adapters.RecyclerAdapter;
@@ -39,24 +43,48 @@ public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = MainActivity.class.getSimpleName();
 
-    private static String time = new SimpleDateFormat("yyyy-MM-dd").format(System.currentTimeMillis());
-    private static final String USGS_URL =
-            "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&starttime=" + time;
-    private String sortBy = "";
+    private static final String USGS_URL = "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&starttime=";
+    private static final String ORDER_BY_TIME_PARAMETER = "&orderby=time";
+    private static final String ORDER_BY_MAGNITUDE_PARAMETER = "&orderby=magnitude";
+    private static final String END_TIME_PARAMETER = "&endtime=";
+    private boolean isDateSet = false;
+    private String mTotalUsgsUrl;
+    private String mSortBy = "";
+    private String mCustomDateCurrent;
+    private String mCustomDateNext;
 
-    private RecyclerView recyclerView;
-    private RecyclerAdapter recyclerAdapter;
-    private SwipeRefreshLayout swipeRefreshLayout;
+    private RecyclerView mRecyclerView;
+    private RecyclerAdapter mRecyclerAdapter;
+    private SwipeRefreshLayout mSwipeRefreshLayout;
+    private DatePickerDialog.OnDateSetListener mDateSetListener;
 
     private List<Earthquake> earthquakeList = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (savedInstanceState != null) {
+            isDateSet = savedInstanceState.getBoolean("isDateSet");
+            mTotalUsgsUrl = savedInstanceState.getString("mTotalUsgsUrl");
+            mSortBy = savedInstanceState.getString("mSortBy");
+            mCustomDateCurrent = savedInstanceState.getString("mCustomDateCurrent");
+            mCustomDateNext = savedInstanceState.getString("mCustomDateNext");
+        }
         setContentView(R.layout.activity_main);
         initToolbar();
         initRecyclerView();
+        setCurrentDate();
         new GettingEarthquakes().execute();
+    }
+
+    @Override
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putBoolean("isDateSet", isDateSet);
+        outState.putString("mTotalUsgsUrl", mTotalUsgsUrl);
+        outState.putString("mSortBy", mSortBy);
+        outState.putString("mCustomDateCurrent", mCustomDateCurrent);
+        outState.putString("mCustomDateNext", mCustomDateNext);
     }
 
     private void initToolbar() {
@@ -68,10 +96,48 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void initRecyclerView() {
-        recyclerView = findViewById(R.id.main_recycler_view);
-        recyclerView.setLayoutManager(new LinearLayoutManager(MainActivity.this));
-        recyclerAdapter = new RecyclerAdapter(earthquakeList, MainActivity.this);
-        recyclerView.setAdapter(recyclerAdapter);
+        mRecyclerView = findViewById(R.id.main_recycler_view);
+        mRecyclerView.setLayoutManager(new LinearLayoutManager(MainActivity.this));
+        mRecyclerAdapter = new RecyclerAdapter(earthquakeList, MainActivity.this);
+        mRecyclerView.setAdapter(mRecyclerAdapter);
+    }
+
+    private void setCurrentDate() {
+        if (!isDateSet) {
+            String currentDate = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
+            mTotalUsgsUrl = USGS_URL + currentDate;
+            isDateSet = true;
+        }
+    }
+
+    private void setCustomDate() {
+        mTotalUsgsUrl = USGS_URL + mCustomDateCurrent + END_TIME_PARAMETER + mCustomDateNext;
+        refreshRecyclerData();
+    }
+
+    private void displayDatePickerDialog() {
+        Calendar cal = Calendar.getInstance();
+        int year = cal.get(Calendar.YEAR);
+        int month = cal.get(Calendar.MONTH);
+        int day = cal.get(Calendar.DAY_OF_MONTH);
+
+        mDateSetListener = new DatePickerDialog.OnDateSetListener() {
+            @Override
+            public void onDateSet(DatePicker view, int y, int m, int d) {
+                m = m + 1;
+                mCustomDateCurrent = y + "-" + m + "-" + d;
+                mCustomDateNext = y + "-" + m + "-" + (d + 1);
+                setCustomDate();
+            }
+        };
+
+        DatePickerDialog datePickerDialog = new DatePickerDialog(
+                MainActivity.this,
+                R.style.datePickerDialog,
+                mDateSetListener,
+                year, month, day);
+        datePickerDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.WHITE));
+        datePickerDialog.show();
     }
 
     private void openCreditsDialog() {
@@ -88,7 +154,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
         if (!menu.findItem(R.id.menu_sort_by_magnitude).isChecked())
-        menu.findItem(R.id.menu_sort_by_time).setChecked(true);
+            menu.findItem(R.id.menu_sort_by_time).setChecked(true);
         return true;
     }
 
@@ -96,26 +162,23 @@ public class MainActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.main_toolbar_menu_refresh:
-                earthquakeList.clear();
-                recyclerAdapter.notifyDataSetChanged();
-                new GettingEarthquakes().execute();
+                refreshRecyclerData();
+                break;
+            case R.id.menu_select_date:
+                displayDatePickerDialog();
                 break;
             case R.id.main_toolbar_menu_credits:
                 openCreditsDialog();
                 break;
             case R.id.menu_sort_by_time:
-                sortBy = "&orderby=time";
-                earthquakeList.clear();
-                recyclerAdapter.notifyDataSetChanged();
-                new GettingEarthquakes().execute();
+                mSortBy = ORDER_BY_TIME_PARAMETER;
+                refreshRecyclerData();
                 item.setChecked(true);
                 break;
             case R.id.menu_sort_by_magnitude:
                 item.setChecked(true);
-                sortBy = "&orderby=magnitude";
-                earthquakeList.clear();
-                recyclerAdapter.notifyDataSetChanged();
-                new GettingEarthquakes().execute();
+                mSortBy = ORDER_BY_MAGNITUDE_PARAMETER;
+                refreshRecyclerData();
                 break;
             default:
                 return super.onOptionsItemSelected(item);
@@ -123,24 +186,28 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
-    public void initSwipeRefresh() {
-        swipeRefreshLayout = findViewById(R.id.swipe_refresh_layout);
-        swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+    private void initSwipeRefresh() {
+        mSwipeRefreshLayout = findViewById(R.id.swipe_refresh_layout);
+        mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
-                earthquakeList.clear();
-                recyclerAdapter.notifyDataSetChanged();
-                new GettingEarthquakes().execute();
-                swipeRefreshLayout.setRefreshing(false);
+                refreshRecyclerData();
+                mSwipeRefreshLayout.setRefreshing(false);
             }
         });
+    }
+
+    private void refreshRecyclerData() {
+        earthquakeList.clear();
+        mRecyclerAdapter.notifyDataSetChanged();
+        new GettingEarthquakes().execute();
     }
 
     public class GettingEarthquakes extends AsyncTask<URL, Void, List<Earthquake>> {
 
         @Override
         protected List<Earthquake> doInBackground(URL... urls) {
-            String stringUrl = USGS_URL + sortBy;
+            String stringUrl = mTotalUsgsUrl + mSortBy;
             URL url = createUrl(stringUrl);
             String stringJsonObject = makeHttpRequest(url);
 
@@ -151,7 +218,7 @@ public class MainActivity extends AppCompatActivity {
         protected void onPostExecute(List<Earthquake> earthquakes) {
             earthquakeList.clear();
             earthquakeList.addAll(earthquakes);
-            recyclerAdapter.notifyDataSetChanged();
+            mRecyclerAdapter.notifyDataSetChanged();
             initSwipeRefresh();
         }
 

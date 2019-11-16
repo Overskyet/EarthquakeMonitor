@@ -15,6 +15,10 @@
         </menu>
     </item>
 
+    <item android:id="@+id/menu_select_date"
+        app:showAsAction="never"
+        android:title="@string/menu_select_date"/>
+
     <item android:id="@+id/main_toolbar_menu_credits"
         android:title="@string/menu_credits"
         app:showAsAction="never"/>
