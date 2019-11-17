@@ -258,19 +258,21 @@ public class MainActivity extends AppCompatActivity {
                 urlConnection.setReadTimeout(10000);
                 urlConnection.setConnectTimeout(15000);
                 urlConnection.connect();
-                if (urlConnection.getResponseCode() != 200)
-                    return jsonResponse; // TODO Handle the bad response
+                if (urlConnection.getResponseCode() != 200) {
+                    Log.i(TAG, "makeHttpRequest: " + urlConnection.getResponseCode() + " response code.");
+                    return jsonResponse;
+                }
                 inputStream = urlConnection.getInputStream();
                 jsonResponse = readStream(inputStream);
             } catch (IOException e) {
-                // TODO: Handle the exception
+                Log.e(TAG, "makeHttpRequest: IOException in HttpUrlConnection block", e);
             } finally {
                 if (urlConnection != null) urlConnection.disconnect();
                 if (inputStream != null) {
                     try {
                         inputStream.close();
                     } catch (IOException e) {
-                        // TODO: Handle the exception
+                        Log.e(TAG, "makeHttpRequest: IOException in InputStream.close() block", e);
                     }
                 }
             }
@@ -292,12 +294,12 @@ public class MainActivity extends AppCompatActivity {
         }
 
         private List<Earthquake> getListOfEarthquakes(String stringJsonObject) {
-
             if (stringJsonObject.isEmpty()) return null;
 
-            List<Earthquake> list = new ArrayList<>();
+            List<Earthquake> list = null;
 
             try {
+                list = new ArrayList<>();
                 JSONObject jsonRootObject = new JSONObject(stringJsonObject);
                 JSONArray jsonArray = jsonRootObject.optJSONArray("features");
 
@@ -316,9 +318,7 @@ public class MainActivity extends AppCompatActivity {
                 }
 
             } catch (JSONException e) {
-                // TODO Handle the exception
-                e.printStackTrace();
-                return null;
+                Log.e(TAG, "getListOfEarthquakes: JSONException", e);
             }
 
             return list;
