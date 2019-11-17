@@ -100,7 +100,7 @@ public class MainActivity extends AppCompatActivity {
     private void initToolbar() {
         Toolbar toolbar = findViewById(R.id.main_toolbar);
         setSupportActionBar(toolbar);
-        getSupportActionBar().setDisplayShowTitleEnabled(false);
+        getSupportActionBar().setDisplayShowTitleEnabled(false); // TODO Handle the exception
         CollapsingToolbarLayout collapsingToolbar = findViewById(R.id.main_collapsing_toolbar);
         collapsingToolbar.setTitle(getResources().getString(R.string.app_name));
     }
@@ -146,7 +146,7 @@ public class MainActivity extends AppCompatActivity {
                 R.style.datePickerDialog,
                 mDateSetListener,
                 year, month, day);
-        datePickerDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.WHITE));
+        datePickerDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.WHITE)); // TODO Handle the exception
         datePickerDialog.show();
     }
 
