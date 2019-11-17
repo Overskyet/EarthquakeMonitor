@@ -259,7 +259,7 @@ public class MainActivity extends AppCompatActivity {
                 urlConnection.setConnectTimeout(15000);
                 urlConnection.connect();
                 if (urlConnection.getResponseCode() != 200) {
-                    Log.i(TAG, "makeHttpRequest: " + urlConnection.getResponseCode() + " response code.");
+                    Log.e(TAG, "makeHttpRequest: " + urlConnection.getResponseCode() + " response code.");
                     return jsonResponse;
                 }
                 inputStream = urlConnection.getInputStream();
