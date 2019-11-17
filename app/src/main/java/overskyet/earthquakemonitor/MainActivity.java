@@ -27,16 +27,17 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.Reader;
 import java.lang.ref.WeakReference;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import overskyet.earthquakemonitor.adapters.RecyclerAdapter;
 
@@ -237,6 +238,8 @@ public class MainActivity extends AppCompatActivity {
             MainActivity activity = activityWeakReference.get();
             if (activity == null || activity.isFinishing()) return;
 
+            if (earthquakes == null) return;
+
             activity.earthquakeList.clear();
             activity.earthquakeList.addAll(earthquakes);
             activity.mRecyclerAdapter.notifyDataSetChanged();
@@ -257,16 +260,16 @@ public class MainActivity extends AppCompatActivity {
             String jsonResponse = "";
             HttpURLConnection urlConnection = null;
             InputStream inputStream = null;
-            BufferedReader bufferedReader;
             try {
                 urlConnection = (HttpURLConnection) url.openConnection();
                 urlConnection.setRequestMethod("GET");
                 urlConnection.setReadTimeout(10000);
                 urlConnection.setConnectTimeout(15000);
                 urlConnection.connect();
+                if (urlConnection.getResponseCode() != 200) return jsonResponse;
+
                 inputStream = urlConnection.getInputStream();
-                bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
-                jsonResponse = bufferedReader.lines().collect(Collectors.joining());
+                jsonResponse = readStream(inputStream);
             } catch (IOException e) {
                 // TODO: Handle the exception
             } finally {
@@ -282,7 +285,22 @@ public class MainActivity extends AppCompatActivity {
             return jsonResponse;
         }
 
+        private String readStream(InputStream inputStream) throws IOException {
+            StringBuilder output = new StringBuilder();
+            Reader reader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
+            BufferedReader bufferedReader = new BufferedReader(reader);
+            String line = bufferedReader.readLine();
+            while (line != null) {
+                output.append(line);
+                line = bufferedReader.readLine();
+            }
+            return output.toString();
+        }
+
         private List<Earthquake> getListOfEarthquakes(String stringJsonObject) {
+
+            if (stringJsonObject.isEmpty()) return null;
+
             List<Earthquake> list = new ArrayList<>();
 
             try {
