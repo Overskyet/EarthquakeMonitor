@@ -36,7 +36,6 @@ import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
 
 import overskyet.earthquakemonitor.adapters.RecyclerAdapter;
@@ -79,7 +78,7 @@ public class MainActivity extends AppCompatActivity {
         initToolbar();
         initRecyclerView();
         setCurrentDate();
-        getEarthquakeAsyncTask();
+        startEarthquakeAsyncTask();
         initSwipeRefresh();
     }
 
@@ -94,7 +93,7 @@ public class MainActivity extends AppCompatActivity {
         outState.putString("mCustomDateNext", mCustomDateNext);
     }
 
-    private void getEarthquakeAsyncTask() {
+    private void startEarthquakeAsyncTask() {
         new EarthquakesAsyncTask(MainActivity.this).execute();
     }
 
@@ -115,7 +114,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void setCurrentDate() {
         if (!isDateSet) {
-            String currentDate = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
+            String currentDate = new SimpleDateFormat("yyyy-MM-dd").format(System.currentTimeMillis());
             mTotalUsgsUrl = USGS_URL + currentDate;
             isDateSet = true;
         }
@@ -123,7 +122,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void setCustomDate() {
         mTotalUsgsUrl = USGS_URL + mCustomDateCurrent + END_TIME_PARAMETER + mCustomDateNext;
-        refreshRecyclerData();
+        startEarthquakeAsyncTask();
     }
 
     private void displayDatePickerDialog() {
@@ -173,7 +172,7 @@ public class MainActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.main_toolbar_menu_refresh:
-                refreshRecyclerData();
+                startEarthquakeAsyncTask();
                 break;
             case R.id.menu_select_date:
                 displayDatePickerDialog();
@@ -185,13 +184,13 @@ public class MainActivity extends AppCompatActivity {
                 isMenuMagnitudeChecked = false;
                 mSortBy = ORDER_BY_TIME_PARAMETER;
                 item.setChecked(true);
-                refreshRecyclerData();
+                startEarthquakeAsyncTask();
                 break;
             case R.id.menu_sort_by_magnitude:
                 isMenuMagnitudeChecked = true;
                 mSortBy = ORDER_BY_MAGNITUDE_PARAMETER;
                 item.setChecked(true);
-                refreshRecyclerData();
+                startEarthquakeAsyncTask();
                 break;
             default:
                 return super.onOptionsItemSelected(item);
@@ -204,16 +203,10 @@ public class MainActivity extends AppCompatActivity {
         mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
-                refreshRecyclerData();
+                startEarthquakeAsyncTask();
                 mSwipeRefreshLayout.setRefreshing(false);
             }
         });
-    }
-
-    private void refreshRecyclerData() {
-        mEarthquakeList.clear();
-        mRecyclerAdapter.notifyDataSetChanged();
-        getEarthquakeAsyncTask();
     }
 
     public static class EarthquakesAsyncTask extends AsyncTask<Void, Void, List<Earthquake>> {
@@ -228,7 +221,7 @@ public class MainActivity extends AppCompatActivity {
         protected List<Earthquake> doInBackground(Void... params) {
             String stringUrl = mTotalUsgsUrl + mSortBy;
             URL url = createUrl(stringUrl);
-            String stringJsonObject = makeHttpRequest(url);
+            String stringJsonObject = url == null ? "" : makeHttpRequest(url);
 
             return getListOfEarthquakes(stringJsonObject);
         }
@@ -266,8 +259,8 @@ public class MainActivity extends AppCompatActivity {
                 urlConnection.setReadTimeout(10000);
                 urlConnection.setConnectTimeout(15000);
                 urlConnection.connect();
-                if (urlConnection.getResponseCode() != 200) return jsonResponse;
-
+                if (urlConnection.getResponseCode() != 200)
+                    return jsonResponse; // TODO Handle the bad response
                 inputStream = urlConnection.getInputStream();
                 jsonResponse = readStream(inputStream);
             } catch (IOException e) {
@@ -287,12 +280,14 @@ public class MainActivity extends AppCompatActivity {
 
         private String readStream(InputStream inputStream) throws IOException {
             StringBuilder output = new StringBuilder();
-            Reader reader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
-            BufferedReader bufferedReader = new BufferedReader(reader);
-            String line = bufferedReader.readLine();
-            while (line != null) {
-                output.append(line);
-                line = bufferedReader.readLine();
+            if (inputStream != null) {
+                Reader reader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
+                BufferedReader bufferedReader = new BufferedReader(reader);
+                String line = bufferedReader.readLine();
+                while (line != null) {
+                    output.append(line);
+                    line = bufferedReader.readLine();
+                }
             }
             return output.toString();
         }
@@ -322,7 +317,9 @@ public class MainActivity extends AppCompatActivity {
                 }
 
             } catch (JSONException e) {
+                // TODO Handle the exception
                 e.printStackTrace();
+                return null;
             }
 
             return list;
