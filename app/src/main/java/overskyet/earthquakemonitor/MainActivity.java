@@ -61,7 +61,7 @@ public class MainActivity extends AppCompatActivity {
     private SwipeRefreshLayout mSwipeRefreshLayout;
     private DatePickerDialog.OnDateSetListener mDateSetListener;
 
-    private List<Earthquake> earthquakeList = new ArrayList<>();
+    private List<Earthquake> mEarthquakeList = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -109,7 +109,7 @@ public class MainActivity extends AppCompatActivity {
     private void initRecyclerView() {
         mRecyclerView = findViewById(R.id.main_recycler_view);
         mRecyclerView.setLayoutManager(new LinearLayoutManager(MainActivity.this));
-        mRecyclerAdapter = new RecyclerAdapter(earthquakeList, MainActivity.this);
+        mRecyclerAdapter = new RecyclerAdapter(mEarthquakeList, MainActivity.this);
         mRecyclerView.setAdapter(mRecyclerAdapter);
     }
 
@@ -211,12 +211,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void refreshRecyclerData() {
-        earthquakeList.clear();
+        mEarthquakeList.clear();
         mRecyclerAdapter.notifyDataSetChanged();
         getEarthquakeAsyncTask();
     }
 
-    public static class EarthquakesAsyncTask extends AsyncTask<URL, Void, List<Earthquake>> {
+    public static class EarthquakesAsyncTask extends AsyncTask<Void, Void, List<Earthquake>> {
 
         private WeakReference<MainActivity> activityWeakReference;
 
@@ -225,7 +225,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         @Override
-        protected List<Earthquake> doInBackground(URL... urls) {
+        protected List<Earthquake> doInBackground(Void... params) {
             String stringUrl = mTotalUsgsUrl + mSortBy;
             URL url = createUrl(stringUrl);
             String stringJsonObject = makeHttpRequest(url);
@@ -240,13 +240,13 @@ public class MainActivity extends AppCompatActivity {
 
             if (earthquakes == null) return;
 
-            activity.earthquakeList.clear();
-            activity.earthquakeList.addAll(earthquakes);
+            activity.mEarthquakeList.clear();
+            activity.mEarthquakeList.addAll(earthquakes);
             activity.mRecyclerAdapter.notifyDataSetChanged();
         }
 
         private URL createUrl(String stringUrl) {
-            URL url = null;
+            URL url;
             try {
                 url = new URL(stringUrl);
             } catch (MalformedURLException e) {
