@@ -239,12 +239,11 @@ public class MainActivity extends AppCompatActivity {
         }
 
         private URL createUrl(String stringUrl) {
-            URL url;
+            URL url = null;
             try {
                 url = new URL(stringUrl);
             } catch (MalformedURLException e) {
                 Log.e(TAG, "createUrl: Can't create url ", e);
-                return null;
             }
             return url;
         }
