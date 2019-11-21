@@ -248,7 +248,7 @@ public class MainActivity extends AppCompatActivity {
 
         private String makeHttpRequest(URL url) {
             String jsonResponse = "";
-            HttpURLConnection urlConnection = null;
+            HttpURLConnection urlConnection;
             InputStream inputStream = null;
             try {
                 urlConnection = (HttpURLConnection) url.openConnection();
@@ -258,19 +258,19 @@ public class MainActivity extends AppCompatActivity {
                 urlConnection.connect();
                 if (urlConnection.getResponseCode() != 200) {
                     Log.e(TAG, "makeHttpRequest: " + urlConnection.getResponseCode() + " response code.");
+                    urlConnection.disconnect();
                     return jsonResponse;
                 }
                 inputStream = urlConnection.getInputStream();
                 jsonResponse = readStream(inputStream);
             } catch (IOException e) {
-                Log.e(TAG, "makeHttpRequest: IOException in HttpUrlConnection block", e);
+                Log.e(TAG, "makeHttpRequest: HttpUrlConnection: ", e);
             } finally {
-                if (urlConnection != null) urlConnection.disconnect();
                 if (inputStream != null) {
                     try {
                         inputStream.close();
                     } catch (IOException e) {
-                        Log.e(TAG, "makeHttpRequest: IOException in InputStream.close() block", e);
+                        Log.e(TAG, "makeHttpRequest: inputStream.close(): ", e);
                     }
                 }
             }
