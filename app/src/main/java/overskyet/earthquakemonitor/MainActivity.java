@@ -229,9 +229,7 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected void onPostExecute(List<Earthquake> earthquakes) {
             MainActivity activity = activityWeakReference.get();
-            if (activity == null || activity.isFinishing()) return;
-
-            if (earthquakes == null) return;
+            if (activity == null || activity.isFinishing() || earthquakes == null) return;
 
             activity.mEarthquakeList.clear();
             activity.mEarthquakeList.addAll(earthquakes);
