@@ -15,7 +15,9 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.DatePicker;
+import android.widget.TextView;
 
 import com.google.android.material.appbar.CollapsingToolbarLayout;
 
@@ -56,9 +58,11 @@ public class MainActivity extends AppCompatActivity {
     private String mCustomDateNext;
 
     private RecyclerView mRecyclerView;
+    private TextView emptyRecyclerViewPlaceholder;
     private RecyclerAdapter mRecyclerAdapter;
     private SwipeRefreshLayout mSwipeRefreshLayout;
     private DatePickerDialog.OnDateSetListener mDateSetListener;
+
 
     private List<Earthquake> mEarthquakeList = new ArrayList<>();
 
@@ -74,6 +78,8 @@ public class MainActivity extends AppCompatActivity {
             mCustomDateNext = savedInstanceState.getString("mCustomDateNext");
         }
         setContentView(R.layout.activity_main);
+
+        emptyRecyclerViewPlaceholder = findViewById(R.id.empty_recycler_view_placeholder);
 
         initToolbar();
         initRecyclerView();
@@ -235,9 +241,18 @@ public class MainActivity extends AppCompatActivity {
             MainActivity activity = activityWeakReference.get();
             if (activity == null || activity.isFinishing() || earthquakes == null) return;
 
-            activity.mEarthquakeList.clear();
-            activity.mEarthquakeList.addAll(earthquakes);
-            activity.mRecyclerAdapter.notifyDataSetChanged();
+            if (earthquakes.isEmpty()) {
+                //set placeholder visible
+                activity.mEarthquakeList.clear();
+                activity.mRecyclerAdapter.notifyDataSetChanged();
+                activity.emptyRecyclerViewPlaceholder.setVisibility(View.VISIBLE);
+            } else {
+                // set placeholder gone
+                activity.emptyRecyclerViewPlaceholder.setVisibility(View.GONE);
+                activity.mEarthquakeList.clear();
+                activity.mEarthquakeList.addAll(earthquakes);
+                activity.mRecyclerAdapter.notifyDataSetChanged();
+            }
         }
 
         private URL createUrl(String stringUrl) {
