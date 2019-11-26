@@ -51,11 +51,11 @@
                 android:id="@+id/empty_recycler_view_placeholder"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="30dp"
+                android:layout_marginTop="@dimen/empty_recycler_placeholder_text_size"
                 android:visibility="gone"
                 android:gravity="center"
-                android:text="No earthquakes found."
-                android:textSize="20sp" />
+                android:text="@string/empty_recycler_view_placeholder"
+                android:textSize="@dimen/empty_recycler_placeholder_text_size" />
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/main_recycler_view"

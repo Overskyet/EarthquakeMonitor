@@ -19,4 +19,7 @@
     <dimen name="recycler_location_text_max_size">15sp</dimen>
     <dimen name="recycler_location_step_granularity">1sp</dimen>
 
+    <dimen name="empty_recycler_placeholder_text_size">20sp</dimen>
+    <dimen name="empty_recycler_placeholder_margin_top">30dp</dimen>
+
 </resources>

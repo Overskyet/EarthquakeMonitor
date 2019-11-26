@@ -8,6 +8,8 @@
     <string name="menu_sort_by_magnitude">Magnitude</string>
     <string name="menu_select_date">Select date</string>
 
+    <string name="empty_recycler_view_placeholder">No earthquakes found.</string>
+
     <string name="credits_header">Credits</string>
     <string name="credits_body">Launcher icon made by <a href='https://www.flaticon.com/authors/freepik'>Freepik</a>
         \n\nData provided by <a href='https://www.usgs.gov/'>USGS</a>
