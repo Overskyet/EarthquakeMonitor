@@ -94,7 +94,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void startEarthquakeAsyncTask() {
-        new EarthquakesAsyncTask(MainActivity.this).execute();
+        new EarthquakesAsyncTask(MainActivity.this).execute(mTotalUsgsUrl + mSortBy);
     }
 
     private void initToolbar() {
@@ -209,7 +209,7 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    public static class EarthquakesAsyncTask extends AsyncTask<Void, Void, List<Earthquake>> {
+    public static class EarthquakesAsyncTask extends AsyncTask<String, Void, List<Earthquake>> {
 
         private WeakReference<MainActivity> activityWeakReference;
 
@@ -218,9 +218,13 @@ public class MainActivity extends AppCompatActivity {
         }
 
         @Override
-        protected List<Earthquake> doInBackground(Void... params) {
-            String stringUrl = mTotalUsgsUrl + mSortBy;
-            URL url = createUrl(stringUrl);
+        protected List<Earthquake> doInBackground(String... urls) {
+            URL url;
+            if (urls.length == 0) {
+                url = createUrl(mTotalUsgsUrl + mSortBy);
+            } else {
+                url = createUrl(urls[0]);
+            }
             String stringJsonObject = url == null ? "" : makeHttpRequest(url);
 
             return getListOfEarthquakes(stringJsonObject);
