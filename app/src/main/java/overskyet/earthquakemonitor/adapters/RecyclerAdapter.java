@@ -1,5 +1,6 @@
 package overskyet.earthquakemonitor.adapters;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.drawable.GradientDrawable;
@@ -44,6 +45,7 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.MyView
         return new MyViewHolder(v);
     }
 
+    @SuppressLint("DefaultLocale")
     @Override
     public void onBindViewHolder(@NonNull MyViewHolder holder, int position) {
         Earthquake earthquake = earthquakeList.get(position);
@@ -124,6 +126,7 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.MyView
 
     private String getTime(long timestamp) {
         Date date = new Date(timestamp);
+        @SuppressLint("SimpleDateFormat")
         DateFormat formatter = new SimpleDateFormat("h:mm a");
         return formatter.format(date);
     }
@@ -154,7 +157,7 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.MyView
         private TextView dateText;
         private TextView timeText;
 
-        public MyViewHolder(@NonNull View v) {
+        MyViewHolder(@NonNull View v) {
             super(v);
             container = v.findViewById(R.id.linear_layout_container);
             imageText = v.findViewById(R.id.main_recycler_image);

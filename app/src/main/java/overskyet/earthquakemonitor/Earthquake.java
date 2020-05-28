@@ -7,7 +7,7 @@ public class Earthquake {
     private double magnitude;
     private String url;
 
-    public Earthquake(String place, long timestamp, double magnitude, String url) {
+    Earthquake(String place, long timestamp, double magnitude, String url) {
         this.place = place;
         this.timestamp = timestamp;
         this.magnitude = magnitude;

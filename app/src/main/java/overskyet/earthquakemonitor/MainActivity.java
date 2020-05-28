@@ -7,6 +7,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
+import android.annotation.SuppressLint;
 import android.app.DatePickerDialog;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
@@ -39,6 +40,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
+import java.util.Objects;
 
 import overskyet.earthquakemonitor.adapters.RecyclerAdapter;
 
@@ -50,18 +52,16 @@ public class MainActivity extends AppCompatActivity {
     private static final String ORDER_BY_TIME_PARAMETER = "&orderby=time";
     private static final String ORDER_BY_MAGNITUDE_PARAMETER = "&orderby=magnitude";
     private static final String END_TIME_PARAMETER = "&endtime=";
-    private boolean isMenuMagnitudeChecked = false;
-    private boolean isDateSet = false;
+    private boolean mIsMenuMagnitudeChecked = false;
+    private boolean mIsDateSet = false;
     private static String mTotalUsgsUrl;
     private static String mSortBy = "";
     private String mCustomDateCurrent;
     private String mCustomDateNext;
 
-    private RecyclerView mRecyclerView;
-    private TextView emptyRecyclerViewPlaceholder;
+    private TextView mEmptyRecyclerViewPlaceholder;
     private RecyclerAdapter mRecyclerAdapter;
     private SwipeRefreshLayout mSwipeRefreshLayout;
-    private DatePickerDialog.OnDateSetListener mDateSetListener;
 
 
     private List<Earthquake> mEarthquakeList = new ArrayList<>();
@@ -70,8 +70,8 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (savedInstanceState != null) {
-            isDateSet = savedInstanceState.getBoolean("isDateSet");
-            isMenuMagnitudeChecked = savedInstanceState.getBoolean("isMenuMagnitudeChecked");
+            mIsDateSet = savedInstanceState.getBoolean("isDateSet");
+            mIsMenuMagnitudeChecked = savedInstanceState.getBoolean("isMenuMagnitudeChecked");
             mTotalUsgsUrl = savedInstanceState.getString("mTotalUsgsUrl");
             mSortBy = savedInstanceState.getString("mSortBy");
             mCustomDateCurrent = savedInstanceState.getString("mCustomDateCurrent");
@@ -79,7 +79,7 @@ public class MainActivity extends AppCompatActivity {
         }
         setContentView(R.layout.activity_main);
 
-        emptyRecyclerViewPlaceholder = findViewById(R.id.empty_recycler_view_placeholder);
+        mEmptyRecyclerViewPlaceholder = findViewById(R.id.empty_recycler_view_placeholder);
 
         initToolbar();
         initRecyclerView();
@@ -91,8 +91,8 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putBoolean("isDateSet", isDateSet);
-        outState.putBoolean("isMenuMagnitudeChecked", isMenuMagnitudeChecked);
+        outState.putBoolean("isDateSet", mIsDateSet);
+        outState.putBoolean("isMenuMagnitudeChecked", mIsMenuMagnitudeChecked);
         outState.putString("mTotalUsgsUrl", mTotalUsgsUrl);
         outState.putString("mSortBy", mSortBy);
         outState.putString("mCustomDateCurrent", mCustomDateCurrent);
@@ -106,23 +106,24 @@ public class MainActivity extends AppCompatActivity {
     private void initToolbar() {
         Toolbar toolbar = findViewById(R.id.main_toolbar);
         setSupportActionBar(toolbar);
-        getSupportActionBar().setDisplayShowTitleEnabled(false); // TODO Handle the exception
+        Objects.requireNonNull(getSupportActionBar()).setDisplayShowTitleEnabled(false);
         CollapsingToolbarLayout collapsingToolbar = findViewById(R.id.main_collapsing_toolbar);
         collapsingToolbar.setTitle(getResources().getString(R.string.app_name));
     }
 
     private void initRecyclerView() {
-        mRecyclerView = findViewById(R.id.main_recycler_view);
-        mRecyclerView.setLayoutManager(new LinearLayoutManager(MainActivity.this));
+        RecyclerView recyclerView = findViewById(R.id.main_recycler_view);
+        recyclerView.setLayoutManager(new LinearLayoutManager(MainActivity.this));
         mRecyclerAdapter = new RecyclerAdapter(mEarthquakeList, MainActivity.this);
-        mRecyclerView.setAdapter(mRecyclerAdapter);
+        recyclerView.setAdapter(mRecyclerAdapter);
     }
 
     private void setCurrentDate() {
-        if (!isDateSet) {
+        if (!mIsDateSet) {
+            @SuppressLint("SimpleDateFormat")
             String currentDate = new SimpleDateFormat("yyyy-MM-dd").format(System.currentTimeMillis());
             mTotalUsgsUrl = USGS_URL + currentDate;
-            isDateSet = true;
+            mIsDateSet = true;
         }
     }
 
@@ -137,7 +138,7 @@ public class MainActivity extends AppCompatActivity {
         int month = cal.get(Calendar.MONTH);
         int day = cal.get(Calendar.DAY_OF_MONTH);
 
-        mDateSetListener = new DatePickerDialog.OnDateSetListener() {
+        DatePickerDialog.OnDateSetListener mDateSetListener = new DatePickerDialog.OnDateSetListener() {
             @Override
             public void onDateSet(DatePicker view, int y, int m, int d) {
                 m = m + 1;
@@ -152,7 +153,7 @@ public class MainActivity extends AppCompatActivity {
                 R.style.datePickerDialog,
                 mDateSetListener,
                 year, month, day);
-        datePickerDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.WHITE)); // TODO Handle the exception
+        Objects.requireNonNull(datePickerDialog.getWindow()).setBackgroundDrawable(new ColorDrawable(Color.WHITE));
         datePickerDialog.show();
     }
 
@@ -169,7 +170,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
-        if (!isMenuMagnitudeChecked) menu.findItem(R.id.menu_sort_by_time).setChecked(true);
+        if (!mIsMenuMagnitudeChecked) menu.findItem(R.id.menu_sort_by_time).setChecked(true);
         else menu.findItem(R.id.menu_sort_by_magnitude).setChecked(true);
         return true;
     }
@@ -187,13 +188,13 @@ public class MainActivity extends AppCompatActivity {
                 openCreditsDialog();
                 break;
             case R.id.menu_sort_by_time:
-                isMenuMagnitudeChecked = false;
+                mIsMenuMagnitudeChecked = false;
                 mSortBy = ORDER_BY_TIME_PARAMETER;
                 item.setChecked(true);
                 startEarthquakeAsyncTask();
                 break;
             case R.id.menu_sort_by_magnitude:
-                isMenuMagnitudeChecked = true;
+                mIsMenuMagnitudeChecked = true;
                 mSortBy = ORDER_BY_MAGNITUDE_PARAMETER;
                 item.setChecked(true);
                 startEarthquakeAsyncTask();
@@ -245,10 +246,10 @@ public class MainActivity extends AppCompatActivity {
                 //set placeholder visible
                 activity.mEarthquakeList.clear();
                 activity.mRecyclerAdapter.notifyDataSetChanged();
-                activity.emptyRecyclerViewPlaceholder.setVisibility(View.VISIBLE);
+                activity.mEmptyRecyclerViewPlaceholder.setVisibility(View.VISIBLE);
             } else {
                 // set placeholder gone
-                activity.emptyRecyclerViewPlaceholder.setVisibility(View.GONE);
+                activity.mEmptyRecyclerViewPlaceholder.setVisibility(View.GONE);
                 activity.mEarthquakeList.clear();
                 activity.mEarthquakeList.addAll(earthquakes);
                 activity.mRecyclerAdapter.notifyDataSetChanged();
